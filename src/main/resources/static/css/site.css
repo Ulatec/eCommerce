@@ -689,7 +689,65 @@ form .error-message {
 	  right: 4px;
 	}
 }
+form .error input {
+	border-width: 2px;
+	border-color: #ac4343;
+	border-bottom: none;
+	border-bottom-left-radius: 0;
+	border-bottom-right-radius: 0;
+	margin-bottom: 0;
 
+}
+form .error button {
+	width: 15%;
+}
+
+.error .collaborator-error-message {
+	border: 2px solid #ac4343;
+	border-radius: 0 0 6px 6px;
+	background-color: #ac4343;
+	color: rgb(254,251,251);
+	padding: 4px 13px;
+	width: calc(100% - 415px);
+	margin-bottom: 1rem;
+	display: inline;
+}
+.error .select-error-message {
+	border: 2px solid #ac4343;
+	border-radius: 0 0 6px 6px;
+	background-color: #ac4343;
+	color: rgb(254,251,251);
+	padding: 4px 13px;
+	width: calc(100% - 415px);
+	margin-bottom: 1rem;
+}
+
+.error .error-message {
+	border: 2px solid #ac4343;
+	border-radius: 0 0 6px 6px;
+	background-color: #ac4343;
+	color: rgb(254,251,251);
+	padding: 4px 13px;
+	width: calc(100% - 62px);
+}
+.file-wrapper.error {
+	border-width: 2px;
+	border-color: #ac4343;
+}
+
+.file-wrapper.error .error-message {
+	border-radius: 0;
+}
+
+.error:not(.file-wrapper) {
+	display: flex;
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-flexbox;
+	display: -webkit-flex;
+	flex-direction: column;
+	-webkit-flex-direction: column;
+}
 
 
 

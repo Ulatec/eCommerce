@@ -12,16 +12,7 @@
 	    <link rel="stylesheet" type="text/css" href="/static/css/site.css" th:href="@{/css/site.css}"/>
 	</head>
 	<body>
-		<header>
-	        <a class="logo" href="/product/">CartShop</a>
-	        <nav>
-	            <ul>
-	                <li><a href="#">About</a></li>
-	                <li><a href="#">FAQ</a></li>
-	                <li><a class="button icon-right" href="/cart">View Cart <i class="material-icons">shopping_cart</i></a></li>
-	            </ul>
-	        </nav>
-	    </header>
+	<div th:replace="layout :: header"></div>
 	    <section class="cart">
             <h1>About</h1>
             <strong> This is my CartShop. There are many like it, but this one is mine.</strong>

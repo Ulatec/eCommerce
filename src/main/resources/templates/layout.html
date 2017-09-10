@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(page_title)" lang="en">
+    <meta charset="utf-8"/>
+    <meta http-equiv="x-ua-compatible" content="ie=edge"/>
+    <title th:text="${page_title}">InstaTeam</title>
+    <link href='https://fonts.googleapis.com/css?family=Inconsolata:400,700' rel='stylesheet' type='text/css'/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+    <link rel="stylesheet" th:href="@{/css/vendor/materialize/css/materialize.css}"/>
+    <link rel="stylesheet" th:href="@{/css/normalize.css}"/>
+    <link rel="stylesheet" th:href="@{/css/site.css}"/>
+
+</head>
+<body>
+<header th:fragment="header">
+    <a class="logo" href="/product/">CartShop</a>
+    <nav>
+        <ul>
+            <li><a href="#">About</a></li>
+            <li><a href="#">FAQ</a></li>
+            <li><a name="cartButton" class="button icon-right" href="/cart">View Cart <i class="material-icons">shopping_cart</i></a></li>
+        </ul>
+    </nav>
+</header>
+<nav th:fragment="nav">
+    <ul>
+        <li th:classappend="${#httpServletRequest.getRequestURI() == '/' ? 'selected':''}"><a href="/">Projects</a></li>
+        <li th:classappend="${#httpServletRequest.getRequestURI() == '/collaborators' ? 'selected':''}"><a href="/collaborators">Collaborators</a></li>
+        <li th:classappend="${#httpServletRequest.getRequestURI() == '/roles' ? 'selected':''}"><a href="/roles">Roles</a></li>
+    </ul>
+</nav>
+
+<div th:fragment="flash" th:if="${flash != null}" class="container">
+    <i class="right material-icons" data-close="">close</i>
+    <div th:classappend="${#strings.toLowerCase(flash.status)}" th:text="${flash.message}" class="flash"></div>
+</div>
+
+</body>
+</html>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
     <head>
         <meta charset="utf-8"/>
         <meta http-equiv="x-ua-compatible" content="ie=edge"/>
@@ -12,16 +12,8 @@
         <link rel="stylesheet" type="text/css" href="/static/css/site.css" th:href="@{/css/site.css}"/>
     </head>
     <body>
-        <header>
-            <a class="logo" href="/product/">CartShop</a>
-            <nav>
-                <ul>
-                    <li><a href="#">About</a></li>
-                    <li><a href="#">FAQ</a></li>
-                    <li><a class="button icon-right" href="/cart">View Cart <i class="material-icons">shopping_cart</i></a></li>
-                </ul>
-            </nav>
-        </header>
+    <div th:replace="layout :: header"></div>
+    <div th:replace="layout :: flash"></div>
         <section class="checkout">
             <h1><span>Checkout&nbsp;&nbsp;>&nbsp;&nbsp;</span>Verify Items</h1>
             <div th:each="productPurchase,iterStat : ${purchase.productPurchases}" class="cart-item">
@@ -34,7 +26,10 @@
             </div>
             <div class="coupon-code">
                 <form id="couponForm" action="#" th:action="@{/checkout/coupon}" th:object="${couponCode}" method="post">
-                    <input type="text" th:field="*{code}" placeholder="Enter coupon code"/>
+                    <div th:classappend="${#fields.hasErrors('code')}? 'error' : ''">
+                        <input type="text" th:field="*{code}" placeholder="Enter coupon code LMOA"/>
+                        <div class="error-message" th:if="${#fields.hasErrors('code')}" th:errors="*{code}"></div>
+                    </div>
                 </form>
             </div>
             <div class="subtotal">

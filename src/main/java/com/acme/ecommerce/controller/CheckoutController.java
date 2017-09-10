@@ -1,5 +1,6 @@
 package com.acme.ecommerce.controller;
 
+import com.acme.ecommerce.FlashMessage;
 import com.acme.ecommerce.domain.*;
 import com.acme.ecommerce.service.PurchaseService;
 import org.slf4j.Logger;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -49,7 +51,7 @@ public class CheckoutController {
     	Purchase purchase = sCart.getPurchase();
     	BigDecimal subTotal = new BigDecimal(0);
     	CouponCode couponCode = sCart.getCouponCode();
-    	
+
     	model.addAttribute("purchase", purchase);
     	if (purchase != null) {
     		
@@ -69,8 +71,18 @@ public class CheckoutController {
 	}
 
 	@RequestMapping(path="/coupon", method = RequestMethod.POST)
-	String postCouponCode(Model model, @ModelAttribute(value="couponCode") CouponCode couponCode) {
-    	sCart.setCouponCode(couponCode);
+	String postCouponCode(Model model,  @ModelAttribute(value="couponCode") @Valid CouponCode couponCode, final BindingResult bindingResult, RedirectAttributes redirectAttributes) {
+		if(bindingResult.hasErrors()) {
+			for(FieldError error : bindingResult.getFieldErrors()){
+				logger.error(error.toString());
+			}
+			//slogger.error("Errors on fields: " + bindingResult.getFieldErrorCount());
+			redirectAttributes.addFlashAttribute("flash", new FlashMessage("Must be between 5 and 10 characters", FlashMessage.Status.FAILURE));
+			redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.couponCode", bindingResult);
+			redirectAttributes.addFlashAttribute("couponCode", couponCode);
+			return "redirect:coupon";
+		}
+		sCart.setCouponCode(couponCode);
    	
 		return "redirect:shipping";
 	}
@@ -269,7 +281,7 @@ public class CheckoutController {
 	    		ctx.setVariable("orderNumber", purchase.getOrderNumber());
 	    		ctx.setVariable("shippingAddress", purchase.getShippingAddress());
 	    		ctx.setVariable("billingAddress", purchase.getBillingAddress());
-	    		ctx.setVariable("creditCard", purchase.getCreditCardNumber());
+	    		ctx.setVariable("creditCard", hideCreditCardNumber(purchase.getCreditCardNumber()));
 	    		
 	    		final String htmlContent = this.templateEngine.process("email_confirmation", ctx);
 			
@@ -311,7 +323,14 @@ public class CheckoutController {
 		
 		return subTotal;
 	}
-	
+	private String hideCreditCardNumber(String cardNumber){
+		char[] inter = cardNumber.toCharArray();
+		for(int i =0; i <12; i++) {
+			inter[i] = '*';
+		}
+		logger.info("creditcard has been converted to " + inter.toString());
+		return inter.toString();
+	}
 	private BigDecimal computeShippingCost(Purchase purchase) {
 		BigDecimal shippingCost = new BigDecimal(0);
 		
