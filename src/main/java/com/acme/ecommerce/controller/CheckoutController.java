@@ -247,7 +247,7 @@ public class CheckoutController {
     		model.addAttribute("orderNumber", purchase.getOrderNumber());
     		model.addAttribute("shippingAddress", purchase.getShippingAddress());
     		model.addAttribute("billingAddress", purchase.getBillingAddress());
-    		model.addAttribute("creditCard", purchase.getCreditCardNumber());
+    		model.addAttribute("creditCard", hideCreditCardNumber(purchase.getCreditCardNumber()));
     	} else {
     		logger.error("No purchases Found!");
     		return("redirect:/error");
@@ -324,12 +324,9 @@ public class CheckoutController {
 		return subTotal;
 	}
 	private String hideCreditCardNumber(String cardNumber){
-		char[] inter = cardNumber.toCharArray();
-		for(int i =0; i <12; i++) {
-			inter[i] = '*';
-		}
-		logger.info("creditcard has been converted to " + inter.toString());
-		return inter.toString();
+		String hiddenCard = "************" + cardNumber.substring(11,15);
+		logger.info("credit card number has been converted to " + hiddenCard);
+		return hiddenCard;
 	}
 	private BigDecimal computeShippingCost(Purchase purchase) {
 		BigDecimal shippingCost = new BigDecimal(0);
