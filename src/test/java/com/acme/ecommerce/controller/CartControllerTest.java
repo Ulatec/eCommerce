@@ -1,12 +1,14 @@
 package com.acme.ecommerce.controller;
 
 import com.acme.ecommerce.Application;
+import com.acme.ecommerce.FlashMessage;
 import com.acme.ecommerce.domain.Product;
 import com.acme.ecommerce.domain.ProductPurchase;
 import com.acme.ecommerce.domain.Purchase;
 import com.acme.ecommerce.domain.ShoppingCart;
 import com.acme.ecommerce.service.ProductService;
 import com.acme.ecommerce.service.PurchaseService;
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -217,6 +219,23 @@ public class CartControllerTest {
 		mockMvc.perform(MockMvcRequestBuilders.post("/cart/remove").param("productId", "1")).andDo(print())
 				.andExpect(status().is3xxRedirection())
 				.andExpect(redirectedUrl("/product/"));
+	}
+
+	@Test
+	public void insufficientStockTest() throws Exception {
+		Product product = productBuilder();
+
+		when(productService.findById(1L)).thenReturn(product);
+
+		Purchase purchase = purchaseBuilder(product);
+
+		mockMvc.perform(MockMvcRequestBuilders.post("/cart/add")
+				.param("productId", "1")
+				.param("quantity", "999"))
+				.andDo(print())
+				.andExpect(status().is3xxRedirection())
+				.andExpect(model().attribute("flash", Matchers.instanceOf(FlashMessage.class)));
+
 	}
 
 	@Test

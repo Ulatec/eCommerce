@@ -1,5 +1,6 @@
 package com.acme.ecommerce.service;
 
+import com.acme.ecommerce.InsufficientStockException;
 import com.acme.ecommerce.domain.Product;
 import com.acme.ecommerce.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,15 @@ public class ProductServiceImpl implements ProductService {
 		Product result = repository.findOne(id);
 		
 		return result;
+	}
+	@Override
+	public void sufficientProductCheck(Product product, int quantity){
+		if(product.getQuantity() < quantity){
+			System.out.println("ERROR");
+			throw new InsufficientStockException();
+
+		}
+
 	}
 
 }

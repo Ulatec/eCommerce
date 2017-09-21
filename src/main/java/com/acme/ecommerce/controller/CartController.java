@@ -1,6 +1,7 @@
 package com.acme.ecommerce.controller;
 
 import com.acme.ecommerce.FlashMessage;
+import com.acme.ecommerce.InsufficientStockException;
 import com.acme.ecommerce.domain.Product;
 import com.acme.ecommerce.domain.ProductPurchase;
 import com.acme.ecommerce.domain.Purchase;
@@ -13,14 +14,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.FlashMap;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.support.RequestContextUtils;
 import org.springframework.web.servlet.view.RedirectView;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.math.BigDecimal;
+
+import static com.acme.ecommerce.FlashMessage.Status.FAILURE;
 
 @Controller
 @RequestMapping("/cart")
@@ -64,7 +71,7 @@ public class CartController {
     }
     
     @RequestMapping(path="/add", method = RequestMethod.POST)
-    public RedirectView addToCart(@ModelAttribute(value="productId") long productId, @ModelAttribute(value="quantity") int quantity) {
+    public RedirectView addToCart(@ModelAttribute(value="productId") long productId, @ModelAttribute(value="quantity") int quantity, RedirectAttributes redirectAttributes) {
     	boolean productAlreadyInCart = false;
     	RedirectView redirect = new RedirectView("/product/");
 		redirect.setExposeModelAttributes(false);
@@ -80,23 +87,37 @@ public class CartController {
     		} else {
     			for (ProductPurchase pp : purchase.getProductPurchases()) {
     				if (pp.getProduct() != null) {
-    					if (pp.getProduct().getId().equals(productId)) {
-    						pp.setQuantity(pp.getQuantity() + quantity);
+    					if (pp.getProduct().getId().equals(productId) ) {
+    						if(sufficientStock(addProduct, pp.getQuantity() + quantity)){
+								pp.setQuantity(pp.getQuantity() + quantity);
+							}else{
+								redirectAttributes.addFlashAttribute("flash", new FlashMessage(addProduct.getName() + " has insufficient stock", FAILURE));
+								return redirect;
+							}
     						productAlreadyInCart = true;
     						break;
     					}
-    				}
+    				}else{
+						redirectAttributes.addFlashAttribute("flash", new FlashMessage(productId + " does not exist.", FAILURE));
+						return redirect;
+					}
     			}
     		}
-    		if (!productAlreadyInCart) {
+    		if (!productAlreadyInCart ) {
     			ProductPurchase newProductPurchase = new ProductPurchase();
-    			newProductPurchase.setProduct(addProduct);
-    			newProductPurchase.setQuantity(quantity);
-    			newProductPurchase.setPurchase(purchase);
-        		purchase.getProductPurchases().add(newProductPurchase);
+    			if(sufficientStock(addProduct, quantity)){
+					newProductPurchase.setProduct(addProduct);
+					newProductPurchase.setQuantity(quantity);
+					newProductPurchase.setPurchase(purchase);
+					purchase.getProductPurchases().add(newProductPurchase);
+				}else{
+					redirectAttributes.addFlashAttribute("flash", new FlashMessage(addProduct.getName() + " has insufficient stock", FAILURE));
+					return redirect;
+    			}
     		}
     		logger.debug("Added " + quantity + " of " + addProduct.getName() + " to cart");
     		sCart.setPurchase(purchaseService.save(purchase));
+			redirectAttributes.addFlashAttribute("flash", new FlashMessage(addProduct.getName() + " has been added to your cart.", FlashMessage.Status.SUCCESS));
 		} else {
 			logger.error("Attempt to add unknown product: " + productId);
 			redirect.setUrl("/error");
@@ -110,8 +131,10 @@ public class CartController {
     	logger.debug("Updating Product: " + productId + " with Quantity: " + newQuantity);
 		RedirectView redirect = new RedirectView("/cart");
 		redirect.setExposeModelAttributes(false);
-    	
+
     	Product updateProduct = productService.findById(productId);
+		productService.sufficientProductCheck(updateProduct, newQuantity);
+
     	if (updateProduct != null) {
     		Purchase purchase = sCart.getPurchase();
     		if (purchase == null) {
@@ -121,13 +144,16 @@ public class CartController {
     			for (ProductPurchase pp : purchase.getProductPurchases()) {
     				if (pp.getProduct() != null) {
     					if (pp.getProduct().getId().equals(productId)) {
-    						if (newQuantity > 0) {
+    						if (newQuantity > 0 && sufficientStock(updateProduct, newQuantity)) {
     							pp.setQuantity(newQuantity);
     							logger.debug("Updated " + updateProduct.getName() + " to " + newQuantity);
-    						} else {
+    						} else if(newQuantity <= 0){
     							purchase.getProductPurchases().remove(pp);
     							logger.debug("Removed " + updateProduct.getName() + " because quantity was set to " + newQuantity);
-    						}
+    						}else{
+								redirectAttributes.addFlashAttribute("flash", new FlashMessage(updateProduct.getName() + " has insufficient stock.", FAILURE));
+								return redirect;
+							}
     						break;
     					}
     				}
@@ -143,7 +169,7 @@ public class CartController {
     }
     
     @RequestMapping(path="/remove", method = RequestMethod.POST)
-    public RedirectView removeFromCart(@ModelAttribute(value="productId") long productId) {
+    public RedirectView removeFromCart(@ModelAttribute(value="productId") long productId, RedirectAttributes redirectAttributes) {
     	logger.debug("Removing Product: " + productId);
 		RedirectView redirect = new RedirectView("/cart");
 		redirect.setExposeModelAttributes(false);
@@ -175,12 +201,12 @@ public class CartController {
     		logger.error("Attempt to update on non-existent product");
     		redirect.setUrl("/error");
     	}
-
+		redirectAttributes.addFlashAttribute("flash", new FlashMessage(updateProduct.getName() + " has been removed from your cart.", FlashMessage.Status.SUCCESS));
     	return redirect;
     }
     
     @RequestMapping(path="/empty", method = RequestMethod.POST)
-    public RedirectView emptyCart() {
+    public RedirectView emptyCart(RedirectAttributes redirectAttributes) {
     	RedirectView redirect = new RedirectView("/product/");
 		redirect.setExposeModelAttributes(false);
     	
@@ -193,7 +219,17 @@ public class CartController {
 			logger.error("Unable to find shopping cart for update");
 			redirect.setUrl("/error");
 		}
-		
-    	return redirect;
+		redirectAttributes.addFlashAttribute("flash", new FlashMessage("Cart is now empty.", FlashMessage.Status.SUCCESS));
+
+		return redirect;
     }
+    private boolean sufficientStock(Product storeProduct, int quantity){
+    	return storeProduct.getQuantity() >= quantity;
+	}
+	@ExceptionHandler(InsufficientStockException.class)
+	public String exceedsStock(HttpServletRequest request, Exception ex) {
+		FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
+		flashMap.put("flash", new FlashMessage(ex.getMessage(), FAILURE));
+		return "redirect:" + request.getHeader("referer");
+	}
 }

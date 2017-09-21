@@ -6,10 +6,11 @@
         <title>CartShop</title>
         <link href='https://fonts.googleapis.com/css?family=Roboto:400,700|Roboto+Condensed:400,700' rel='stylesheet' type='text/css'/>
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
         <script src="/js/site.js"></script>
         <link rel="stylesheet" type="text/css" href="/static/css/normalize.css" th:href="@{/css/normalize.css}"/>
         <link rel="stylesheet" type="text/css" href="/static/css/site.css" th:href="@{/css/site.css}"/>
+
+
     </head>
 <body>
 <header th:fragment="header">
@@ -30,8 +31,8 @@
     </ul>
 </nav>
 
-<div th:fragment="flash" th:if="${flash != null}" class="container">
-    <i class="right material-icons" data-close="">close</i>
+<div th:fragment="flash" th:if="${flash != null}" class="container alert">
+    <!--<i class="right material-icons" data-close="">close</i>-->
     <div th:classappend="${#strings.toLowerCase(flash.status)}" th:text="${flash.message}" class="flash"></div>
 </div>
 
