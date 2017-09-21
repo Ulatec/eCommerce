@@ -88,6 +88,11 @@ public class CheckoutControllerTest {
 	}
 
 	@Test
+	public void invalidCouponTest() throws Exception {
+		mockMvc.perform(MockMvcRequestBuilders.post("/checkout/coupon").param("couponCode", ""))
+	}
+
+	@Test
 	public void shippingTest() throws Exception {
 		Product product = productBuilder();
 

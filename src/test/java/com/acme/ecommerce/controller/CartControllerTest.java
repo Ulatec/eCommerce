@@ -235,7 +235,6 @@ public class CartControllerTest {
 				.andDo(print())
 				.andExpect(status().is3xxRedirection())
 				.andExpect(model().attribute("flash", Matchers.instanceOf(FlashMessage.class)));
-
 	}
 
 	@Test
