@@ -71,7 +71,7 @@ public class CheckoutController {
 	}
 
 	@RequestMapping(path="/coupon", method = RequestMethod.POST)
-	String postCouponCode(Model model,  @ModelAttribute(value="couponCode") @Valid CouponCode couponCode, final BindingResult bindingResult, RedirectAttributes redirectAttributes) {
+	String postCouponCode(Model model,  @ModelAttribute(value="couponCode") @Valid CouponCode couponCode, BindingResult bindingResult, RedirectAttributes redirectAttributes) {
 		if(bindingResult.hasErrors()) {
 			for(FieldError error : bindingResult.getFieldErrors()){
 				logger.error(error.toString());
@@ -80,7 +80,8 @@ public class CheckoutController {
 			redirectAttributes.addFlashAttribute("flash", new FlashMessage("Must be between 5 and 10 characters", FlashMessage.Status.FAILURE));
 			redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.couponCode", bindingResult);
 			redirectAttributes.addFlashAttribute("couponCode", couponCode);
-			return "redirect:coupon";
+			sCart.setPurchase(null);
+			return "redirect:/checkout/coupon";
 		}
 		sCart.setCouponCode(couponCode);
    	
@@ -117,7 +118,7 @@ public class CheckoutController {
 	}
 	
 	@RequestMapping(path="/shipping", method = RequestMethod.POST)
-	String postShipping(@ModelAttribute(value="shippingAddress") @Valid Address shippingAddress, final BindingResult result, RedirectAttributes redirectAttributes) {
+	String postShipping(@ModelAttribute(value="shippingAddress") @Valid Address shippingAddress, BindingResult result, RedirectAttributes redirectAttributes) {
 
     	if(result.hasErrors()) {
     		logger.error("Errors on fields: " + result.getFieldErrorCount());

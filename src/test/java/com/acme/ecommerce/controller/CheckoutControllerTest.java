@@ -89,7 +89,10 @@ public class CheckoutControllerTest {
 
 	@Test
 	public void invalidCouponTest() throws Exception {
-		mockMvc.perform(MockMvcRequestBuilders.post("/checkout/coupon").param("couponCode", ""))
+		mockMvc.perform(MockMvcRequestBuilders.post("/checkout/coupon").param("couponCode", "aajbhbhbjhuyguy"))
+				.andDo(print())
+				.andExpect(status().is3xxRedirection())
+				.andExpect(redirectedUrl("/checkout/coupon"));
 	}
 
 	@Test

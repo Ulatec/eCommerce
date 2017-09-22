@@ -2,6 +2,7 @@ package com.acme.ecommerce.controller;
 
 import com.acme.ecommerce.Application;
 import com.acme.ecommerce.FlashMessage;
+import com.acme.ecommerce.InsufficientStockException;
 import com.acme.ecommerce.domain.Product;
 import com.acme.ecommerce.domain.ProductPurchase;
 import com.acme.ecommerce.domain.Purchase;
@@ -221,20 +222,28 @@ public class CartControllerTest {
 				.andExpect(redirectedUrl("/product/"));
 	}
 
-	@Test
+	@Test(expected = InsufficientStockException.class)
 	public void insufficientStockTest() throws Exception {
 		Product product = productBuilder();
 
 		when(productService.findById(1L)).thenReturn(product);
 
-		Purchase purchase = purchaseBuilder(product);
-
 		mockMvc.perform(MockMvcRequestBuilders.post("/cart/add")
 				.param("productId", "1")
 				.param("quantity", "999"))
+				.andExpect(status().is3xxRedirection());
+	}
+	@Test
+	public void cartAddFlashMessageTest() throws Exception {
+		Product product = productBuilder();
+
+		when(productService.findById(1L)).thenReturn(product);
+;
+		mockMvc.perform(MockMvcRequestBuilders.post("/cart/add").param("quantity", "1").param("productId", "1"))
 				.andDo(print())
 				.andExpect(status().is3xxRedirection())
-				.andExpect(model().attribute("flash", Matchers.instanceOf(FlashMessage.class)));
+				.andExpect(flash().attribute("flash", Matchers.instanceOf(FlashMessage.class)));
+
 	}
 
 	@Test

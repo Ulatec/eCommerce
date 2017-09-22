@@ -75,8 +75,8 @@ public class CartController {
     	boolean productAlreadyInCart = false;
     	RedirectView redirect = new RedirectView("/product/");
 		redirect.setExposeModelAttributes(false);
-    	
-    	Product addProduct = productService.findById(productId);
+
+		Product addProduct = productService.findById(productId);
 		if (addProduct != null) {
 	    	logger.debug("Adding Product: " + addProduct.getId());
 	    	
@@ -88,13 +88,9 @@ public class CartController {
     			for (ProductPurchase pp : purchase.getProductPurchases()) {
     				if (pp.getProduct() != null) {
     					if (pp.getProduct().getId().equals(productId) ) {
-    						if(sufficientStock(addProduct, pp.getQuantity() + quantity)){
-								pp.setQuantity(pp.getQuantity() + quantity);
-							}else{
-								redirectAttributes.addFlashAttribute("flash", new FlashMessage(addProduct.getName() + " has insufficient stock", FAILURE));
-								return redirect;
-							}
-    						productAlreadyInCart = true;
+							productService.sufficientProductCheck(addProduct, pp.getQuantity() + quantity);
+							pp.setQuantity(pp.getQuantity() + quantity);
+							productAlreadyInCart = true;
     						break;
     					}
     				}else{
@@ -104,16 +100,12 @@ public class CartController {
     			}
     		}
     		if (!productAlreadyInCart ) {
-    			ProductPurchase newProductPurchase = new ProductPurchase();
-    			if(sufficientStock(addProduct, quantity)){
+    			productService.sufficientProductCheck(addProduct, quantity);
+				ProductPurchase newProductPurchase = new ProductPurchase();
 					newProductPurchase.setProduct(addProduct);
 					newProductPurchase.setQuantity(quantity);
 					newProductPurchase.setPurchase(purchase);
 					purchase.getProductPurchases().add(newProductPurchase);
-				}else{
-					redirectAttributes.addFlashAttribute("flash", new FlashMessage(addProduct.getName() + " has insufficient stock", FAILURE));
-					return redirect;
-    			}
     		}
     		logger.debug("Added " + quantity + " of " + addProduct.getName() + " to cart");
     		sCart.setPurchase(purchaseService.save(purchase));
@@ -144,16 +136,13 @@ public class CartController {
     			for (ProductPurchase pp : purchase.getProductPurchases()) {
     				if (pp.getProduct() != null) {
     					if (pp.getProduct().getId().equals(productId)) {
-    						if (newQuantity > 0 && sufficientStock(updateProduct, newQuantity)) {
+    						if (newQuantity > 0 ) {
     							pp.setQuantity(newQuantity);
     							logger.debug("Updated " + updateProduct.getName() + " to " + newQuantity);
-    						} else if(newQuantity <= 0){
+    						} else{
     							purchase.getProductPurchases().remove(pp);
     							logger.debug("Removed " + updateProduct.getName() + " because quantity was set to " + newQuantity);
-    						}else{
-								redirectAttributes.addFlashAttribute("flash", new FlashMessage(updateProduct.getName() + " has insufficient stock.", FAILURE));
-								return redirect;
-							}
+    						}
     						break;
     					}
     				}
@@ -232,4 +221,6 @@ public class CartController {
 		flashMap.put("flash", new FlashMessage(ex.getMessage(), FAILURE));
 		return "redirect:" + request.getHeader("referer");
 	}
+
+
 }

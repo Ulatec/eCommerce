@@ -13,6 +13,7 @@
     </head>
     <body>
     <div th:replace="layout :: header"></div>
+    <div th:replace="layout :: flash"></div>
         <section class="product-detail">
             <div class="product-image">
                  <img th:src="@{/product/{productId}/image(productId=${product.id})}"/>
