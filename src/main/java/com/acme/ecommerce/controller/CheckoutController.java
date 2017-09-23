@@ -285,7 +285,9 @@ public class CheckoutController {
 	    		
 	    		ctx.setVariable("orderNumber", purchase.getOrderNumber());
 	    		ctx.setVariable("shippingAddress", purchase.getShippingAddress());
-	    		ctx.setVariable("billingAddress", purchase.getBillingAddress());
+//	    		ctx.setVariable("billingAddress", purchase.getBillingAddress());
+
+				/* Leaving credit card field with hidden digits in case a customer is required to know which payment method was used. */
 	    		ctx.setVariable("creditCard", hideCreditCardNumber(purchase.getCreditCardNumber()));
 	    		
 	    		final String htmlContent = this.templateEngine.process("email_confirmation", ctx);

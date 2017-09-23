@@ -73,7 +73,7 @@ public class CartController {
     }
     
     @RequestMapping(path="/add", method = RequestMethod.POST)
-    public RedirectView addToCart(@ModelAttribute(value="productId") long productId, @ModelAttribute(value="quantity") int quantity, RedirectAttributes redirectAttributes) {
+    public RedirectView addToCart(@ModelAttribute(value="productId") long productId, @ModelAttribute(value="quantity") int quantity, RedirectAttributes redirectAttributes) throws Exception{
     	boolean productAlreadyInCart = false;
     	RedirectView redirect = new RedirectView("/product/");
 		redirect.setExposeModelAttributes(false);
@@ -89,7 +89,7 @@ public class CartController {
     		} else {
     			for (ProductPurchase pp : purchase.getProductPurchases()) {
     				if (pp.getProduct() != null) {
-    					if (pp.getProduct().getId().equals(productId) ) {
+    					if (pp.getProduct().getId().equals(productId)) {
 							productService.sufficientProductCheck(addProduct, pp.getQuantity() + quantity);
 							pp.setQuantity(pp.getQuantity() + quantity);
 							productAlreadyInCart = true;
@@ -102,7 +102,7 @@ public class CartController {
     			}
     		}
     		if (!productAlreadyInCart ) {
-    			productService.sufficientProductCheck(addProduct, quantity);
+				productService.sufficientProductCheck(addProduct, quantity);
 				ProductPurchase newProductPurchase = new ProductPurchase();
 					newProductPurchase.setProduct(addProduct);
 					newProductPurchase.setQuantity(quantity);
@@ -121,7 +121,7 @@ public class CartController {
     }
  
     @RequestMapping(path="/update", method = RequestMethod.POST)
-    public RedirectView updateCart(@ModelAttribute(value="productId") long productId, @ModelAttribute(value="newQuantity") int newQuantity, RedirectAttributes redirectAttributes) {
+    public RedirectView updateCart(@ModelAttribute(value="productId") long productId, @ModelAttribute(value="newQuantity") int newQuantity, RedirectAttributes redirectAttributes) throws Exception{
     	logger.debug("Updating Product: " + productId + " with Quantity: " + newQuantity);
 		RedirectView redirect = new RedirectView("/cart");
 		redirect.setExposeModelAttributes(false);
@@ -223,19 +223,14 @@ public class CartController {
 			model.addAttribute("cart", cart);
 			model.addAttribute("subTotal", subTotal);
 		}
-
-
 	}
 
-    private boolean sufficientStock(Product storeProduct, int quantity){
-    	return storeProduct.getQuantity() >= quantity;
-	}
 	@ExceptionHandler(InsufficientStockException.class)
-	public String inSufficientStock(HttpServletRequest httpServletRequest, Exception ex) {
+	public String insufficientStock(HttpServletRequest httpServletRequest, Exception ex) {
 		FlashMap flashMap = RequestContextUtils.getOutputFlashMap(httpServletRequest);
-		flashMap.put("flash", new FlashMessage(ex.getMessage(), FAILURE));
+		flashMap.put("flash", new FlashMessage(ex.getMessage(), FlashMessage.Status.FAILURE));
+		flashMap.put("ex", ex);
 		return "redirect:" + httpServletRequest.getHeader("referer");
 	}
-
 
 }

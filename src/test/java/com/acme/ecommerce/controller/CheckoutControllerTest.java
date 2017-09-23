@@ -90,14 +90,7 @@ public class CheckoutControllerTest {
 
 	@Test
 	public void invalidCouponTest() throws Exception {
-		Product product = productBuilder();
-
-		when(productService.findById(1L)).thenReturn(product);
-
-		Purchase purchase = purchaseBuilder(product);
-
-		when(sCart.getPurchase()).thenReturn(purchase);
-		mockMvc.perform(MockMvcRequestBuilders.post("/checkout/coupon").param("couponCode", "a"))
+		mockMvc.perform(MockMvcRequestBuilders.post("/checkout/coupon").param("code", "a"))
 				.andDo(print())
 				.andExpect(status().is3xxRedirection())
 				.andExpect(redirectedUrl("/checkout/coupon"));

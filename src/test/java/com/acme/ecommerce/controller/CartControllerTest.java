@@ -222,16 +222,17 @@ public class CartControllerTest {
 				.andExpect(redirectedUrl("/product/"));
 	}
 
-	@Test(expected = InsufficientStockException.class)
+	@Test
 	public void insufficientStockTest() throws Exception {
 		Product product = productBuilder();
 
 		when(productService.findById(1L)).thenReturn(product);
 
 		mockMvc.perform(MockMvcRequestBuilders.post("/cart/add")
-				.param("productId", "1")
-				.param("quantity", "999"))
-				.andExpect(status().is3xxRedirection());
+						.param("quantity", "10")
+						.param("productId", "1"))
+				.andExpect(status().is3xxRedirection())
+				.andExpect(flash().attribute("ex", Matchers.instanceOf(InsufficientStockException.class)));
 	}
 	@Test
 	public void cartAddFlashMessageTest() throws Exception {
