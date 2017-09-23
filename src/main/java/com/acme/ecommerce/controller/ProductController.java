@@ -1,12 +1,15 @@
 package com.acme.ecommerce.controller;
 
+import com.acme.ecommerce.ProductNotFoundException;
 import com.acme.ecommerce.domain.Product;
 import com.acme.ecommerce.domain.ProductPurchase;
+import com.acme.ecommerce.domain.ShoppingCart;
 import com.acme.ecommerce.service.ProductService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,12 +21,14 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.HttpSession;
+import javax.xml.bind.SchemaOutputResolver;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
 @Controller
 @RequestMapping("/product")
+@Scope("request")
 public class ProductController {
 	
 	final Logger logger = LoggerFactory.getLogger(ProductController.class);
@@ -33,9 +38,12 @@ public class ProductController {
 	
 	@Autowired
 	ProductService productService;
-	
+
+	@Autowired
+	private ShoppingCart sCart;
 	@Autowired
 	HttpSession session;
+
 	
 	@Value("${imagePath:/images/}")
 	String imagePath;
@@ -53,7 +61,10 @@ public class ProductController {
     	Page<Product> products = productService.findAll(new PageRequest(evalPage, PAGE_SIZE));
     	
 		model.addAttribute("products", products);
-
+		if(sCart == null){
+			sCart = new ShoppingCart();
+		}
+		CartController.addSubTotalToModel(model, sCart);
         return "index";
     }
     
@@ -72,6 +83,7 @@ public class ProductController {
     		logger.error("Product " + id + " Not Found!");
     		return "redirect:/error";
     	}
+		CartController.addSubTotalToModel(model, sCart);
 
         return "product_detail";
     }
@@ -105,4 +117,10 @@ public class ProductController {
     	logger.warn("Happy Easter! Someone actually clicked on About.");
     	return("about");
     }
+	@ExceptionHandler(ProductNotFoundException.class)
+	public String productNotFound(Model model, Exception ex) {
+		model.addAttribute("errorMessage", ex.getMessage());
+		System.out.println("PNF");
+		return "error";
+	}
 }

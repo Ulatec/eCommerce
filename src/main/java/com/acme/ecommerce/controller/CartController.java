@@ -67,7 +67,9 @@ public class CartController {
     		logger.error("No purchases Found for session ID=" + session.getId());
     		return "redirect:/error";
     	}
-        return "cart";
+		CartController.addSubTotalToModel(model, sCart);
+
+		return "cart";
     }
     
     @RequestMapping(path="/add", method = RequestMethod.POST)
@@ -212,14 +214,27 @@ public class CartController {
 
 		return redirect;
     }
+    public static void addSubTotalToModel(Model model, ShoppingCart cart){
+    	BigDecimal subTotal = new BigDecimal(0);
+		if (cart.getPurchase() != null) {
+			for(ProductPurchase pp : cart.getPurchase().getProductPurchases()){
+				subTotal = subTotal.add(pp.getProduct().getPrice().multiply( new BigDecimal(pp.getQuantity())));
+			}
+			model.addAttribute("cart", cart);
+			model.addAttribute("subTotal", subTotal);
+		}
+
+
+	}
+
     private boolean sufficientStock(Product storeProduct, int quantity){
     	return storeProduct.getQuantity() >= quantity;
 	}
 	@ExceptionHandler(InsufficientStockException.class)
-	public String exceedsStock(HttpServletRequest request, Exception ex) {
-		FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
+	public String inSufficientStock(HttpServletRequest httpServletRequest, Exception ex) {
+		FlashMap flashMap = RequestContextUtils.getOutputFlashMap(httpServletRequest);
 		flashMap.put("flash", new FlashMessage(ex.getMessage(), FAILURE));
-		return "redirect:" + request.getHeader("referer");
+		return "redirect:" + httpServletRequest.getHeader("referer");
 	}
 
 

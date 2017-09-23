@@ -67,6 +67,8 @@ public class CheckoutController {
     		logger.error("No purchases Found!");
     		return("redirect:/error");
     	}
+		CartController.addSubTotalToModel(model, sCart);
+
 		return "checkout_1";
 	}
 
@@ -82,10 +84,10 @@ public class CheckoutController {
 			redirectAttributes.addFlashAttribute("couponCode", couponCode);
 			sCart.setPurchase(null);
 			return "redirect:/checkout/coupon";
+		}else {
+			sCart.setCouponCode(couponCode);
+			return "redirect:shipping";
 		}
-		sCart.setCouponCode(couponCode);
-   	
-		return "redirect:shipping";
 	}
 	
 	@RequestMapping(path="/shipping", method=RequestMethod.GET)
@@ -114,6 +116,8 @@ public class CheckoutController {
     		logger.error("No purchases Found!");
     		return("redirect:/error");
     	}
+
+
 		return "checkout_2";
 	}
 	

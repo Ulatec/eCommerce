@@ -82,6 +82,7 @@ public class CheckoutControllerTest {
 
 	@Test
 	public void postCouponTest() throws Exception {
+
 		mockMvc.perform(MockMvcRequestBuilders.post("/checkout/coupon").param("couponCode", "abcd")).andDo(print())
 				.andExpect(status().is3xxRedirection())
 				.andExpect(redirectedUrl("shipping"));
@@ -89,7 +90,14 @@ public class CheckoutControllerTest {
 
 	@Test
 	public void invalidCouponTest() throws Exception {
-		mockMvc.perform(MockMvcRequestBuilders.post("/checkout/coupon").param("couponCode", "aajbhbhbjhuyguy"))
+		Product product = productBuilder();
+
+		when(productService.findById(1L)).thenReturn(product);
+
+		Purchase purchase = purchaseBuilder(product);
+
+		when(sCart.getPurchase()).thenReturn(purchase);
+		mockMvc.perform(MockMvcRequestBuilders.post("/checkout/coupon").param("couponCode", "a"))
 				.andDo(print())
 				.andExpect(status().is3xxRedirection())
 				.andExpect(redirectedUrl("/checkout/coupon"));

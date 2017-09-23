@@ -292,6 +292,18 @@ public class CartControllerTest {
 				.andExpect(redirectedUrl("/error"));
 	}
 
+	@Test
+	public void cartSubTotalInHeader() throws Exception {
+		Product product = productBuilder();
+
+		when(productService.findById(1L)).thenReturn(product);
+		Purchase purchase = purchaseBuilder(product);
+		when(sCart.getPurchase()).thenReturn(purchase);
+		mockMvc.perform(MockMvcRequestBuilders.get("/cart/"))
+				.andDo(print())
+				.andExpect(model().attributeExists("subTotal"));
+	}
+
 	private Product productBuilder() {
 		Product product = new Product();
 		product.setId(1L);
