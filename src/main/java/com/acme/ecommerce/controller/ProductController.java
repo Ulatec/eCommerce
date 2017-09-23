@@ -71,7 +71,9 @@ public class ProductController {
     @RequestMapping(path = "/detail/{id}", method = RequestMethod.GET)
     public String productDetail(@PathVariable long id, Model model) {
     	logger.debug("Details for Product " + id);
-    	
+		if(sCart == null){
+			sCart = new ShoppingCart();
+		}
     	Product returnProduct = productService.findById(id);
     	if (returnProduct != null) {
     		model.addAttribute("product", returnProduct);

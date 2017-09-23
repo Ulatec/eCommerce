@@ -51,7 +51,7 @@ public class CartController {
     public String viewCart(Model model) {
     	logger.debug("Getting Product List");
     	logger.debug("Session ID = " + session.getId());
-    	
+
     	Purchase purchase = sCart.getPurchase();
     	BigDecimal subTotal = new BigDecimal(0);
     	
@@ -151,11 +151,11 @@ public class CartController {
     			}
     		}
     		sCart.setPurchase(purchaseService.save(purchase));
-    	} else {
+			redirectAttributes.addFlashAttribute("flash", new FlashMessage("Cart has been updated", FlashMessage.Status.SUCCESS));
+		} else {
     		logger.error("Attempt to update on non-existent product");
     		redirect.setUrl("/error");
     	}
-    	redirectAttributes.addFlashAttribute("flash", new FlashMessage("Cart has been updated", FlashMessage.Status.SUCCESS));
     	return redirect;
     }
     
@@ -174,7 +174,8 @@ public class CartController {
     					if (pp.getProduct().getId().equals(productId)) {
     						purchase.getProductPurchases().remove(pp);
    							logger.debug("Removed " + updateProduct.getName());
-    						break;
+							redirectAttributes.addFlashAttribute("flash", new FlashMessage(updateProduct.getName() + " has been removed from your cart.", FlashMessage.Status.SUCCESS));
+							break;
     					}
     				}
     			}
@@ -192,7 +193,6 @@ public class CartController {
     		logger.error("Attempt to update on non-existent product");
     		redirect.setUrl("/error");
     	}
-		redirectAttributes.addFlashAttribute("flash", new FlashMessage(updateProduct.getName() + " has been removed from your cart.", FlashMessage.Status.SUCCESS));
     	return redirect;
     }
     

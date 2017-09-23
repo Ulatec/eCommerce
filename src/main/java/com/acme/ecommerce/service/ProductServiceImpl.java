@@ -41,7 +41,7 @@ public class ProductServiceImpl implements ProductService {
 		}
 	}
 	@Override
-	public void sufficientProductCheck(Product product, int quantity){
+	public void sufficientProductCheck(Product product, int quantity) throws InsufficientStockException{
 		if(product.getQuantity() < quantity){
 			throw new InsufficientStockException();
 		}

@@ -79,10 +79,8 @@ public class CheckoutController {
 				logger.error(error.toString());
 			}
 			//slogger.error("Errors on fields: " + bindingResult.getFieldErrorCount());
-			redirectAttributes.addFlashAttribute("flash", new FlashMessage("Must be between 5 and 10 characters", FlashMessage.Status.FAILURE));
-			redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.couponCode", bindingResult);
-			redirectAttributes.addFlashAttribute("couponCode", couponCode);
-			sCart.setPurchase(null);
+			redirectAttributes.addFlashAttribute("couponError", new FlashMessage("Coupon should be between 5 and 10 characters", FlashMessage.Status.FAILURE));
+			sCart.setCouponCode(null);
 			return "redirect:/checkout/coupon";
 		}else {
 			sCart.setCouponCode(couponCode);
@@ -285,10 +283,6 @@ public class CheckoutController {
 	    		
 	    		ctx.setVariable("orderNumber", purchase.getOrderNumber());
 	    		ctx.setVariable("shippingAddress", purchase.getShippingAddress());
-//	    		ctx.setVariable("billingAddress", purchase.getBillingAddress());
-
-				/* Leaving credit card field with hidden digits in case a customer is required to know which payment method was used. */
-	    		ctx.setVariable("creditCard", hideCreditCardNumber(purchase.getCreditCardNumber()));
 	    		
 	    		final String htmlContent = this.templateEngine.process("email_confirmation", ctx);
 			
@@ -331,9 +325,7 @@ public class CheckoutController {
 		return subTotal;
 	}
 	private String hideCreditCardNumber(String cardNumber){
-		String hiddenCard = "************" + cardNumber.substring(11,15);
-		logger.info("credit card number has been converted to " + hiddenCard);
-		return hiddenCard;
+		return cardNumber.substring(cardNumber.length() - 4);
 	}
 	private BigDecimal computeShippingCost(Purchase purchase) {
 		BigDecimal shippingCost = new BigDecimal(0);

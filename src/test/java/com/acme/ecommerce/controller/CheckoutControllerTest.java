@@ -1,6 +1,7 @@
 package com.acme.ecommerce.controller;
 
 import com.acme.ecommerce.Application;
+import com.acme.ecommerce.FlashMessage;
 import com.acme.ecommerce.domain.*;
 import com.acme.ecommerce.service.ProductService;
 import com.acme.ecommerce.service.PurchaseService;
@@ -24,6 +25,7 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -93,7 +95,8 @@ public class CheckoutControllerTest {
 		mockMvc.perform(MockMvcRequestBuilders.post("/checkout/coupon").param("code", "a"))
 				.andDo(print())
 				.andExpect(status().is3xxRedirection())
-				.andExpect(redirectedUrl("/checkout/coupon"));
+				.andExpect(redirectedUrl("/checkout/coupon"))
+				.andExpect(flash().attribute("couponError", instanceOf(FlashMessage.class)));
 	}
 
 	@Test
@@ -274,6 +277,7 @@ public class CheckoutControllerTest {
 		when(productService.findById(1L)).thenReturn(product);
 
 		Purchase purchase = purchaseBuilder(product);
+		purchase.setCreditCardNumber("0123456789012345");
 		when(sCart.getPurchase()).thenReturn(purchase);
 
 		CouponCode coupon = new CouponCode();

@@ -29,6 +29,10 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -228,6 +232,15 @@ public class CartControllerTest {
 
 		when(productService.findById(1L)).thenReturn(product);
 
+		doAnswer(invocation -> {
+			Product productTest = (Product) invocation.getArguments()[0];
+			int quantity = (int) invocation.getArguments()[1];
+			if(productTest.getQuantity() < quantity){
+				throw new InsufficientStockException();
+			}
+			return null;
+		}).when(productService).sufficientProductCheck(any(Product.class), anyInt());
+
 		mockMvc.perform(MockMvcRequestBuilders.post("/cart/add")
 						.param("quantity", "10")
 						.param("productId", "1"))
@@ -239,12 +252,100 @@ public class CartControllerTest {
 		Product product = productBuilder();
 
 		when(productService.findById(1L)).thenReturn(product);
-;
+
 		mockMvc.perform(MockMvcRequestBuilders.post("/cart/add").param("quantity", "1").param("productId", "1"))
 				.andDo(print())
 				.andExpect(status().is3xxRedirection())
 				.andExpect(flash().attribute("flash", Matchers.instanceOf(FlashMessage.class)));
+	}
+	@Test
+	public void cartUpdateFlashMessageTest() throws Exception {
+		Product product = productBuilder();
 
+		when(productService.findById(1L)).thenReturn(product);
+
+		Purchase purchase = purchaseBuilder(product);
+
+		when(sCart.getPurchase()).thenReturn(purchase);
+
+		mockMvc.perform(MockMvcRequestBuilders.post("/cart/update").param("newQuantity", "2").param("productId", "1"))
+				.andDo(print())
+				.andExpect(status().is3xxRedirection())
+				.andExpect(redirectedUrl("/cart"))
+				.andExpect(flash().attribute("flash", Matchers.instanceOf(FlashMessage.class)));
+	}
+	@Test
+	public void cartRemovalFlashMessageTest() throws Exception {
+		Product product = productBuilder();
+
+		Product product2 = productBuilder();
+		product2.setId(2L);
+
+		when(productService.findById(1L)).thenReturn(product);
+
+		ProductPurchase pp = new ProductPurchase();
+		pp.setProductPurchaseId(1L);
+		pp.setQuantity(1);
+		pp.setProduct(product);
+
+		ProductPurchase pp2 = new ProductPurchase();
+		pp2.setProductPurchaseId(2L);
+		pp2.setQuantity(2);
+		pp2.setProduct(product2);
+
+		List<ProductPurchase> ppList = new ArrayList<ProductPurchase>();
+		ppList.add(pp);
+		ppList.add(pp2);
+
+		Purchase purchase = new Purchase();
+		purchase.setId(1L);
+		purchase.setProductPurchases(ppList);
+
+		when(sCart.getPurchase()).thenReturn(purchase);
+
+		when(purchaseService.save(purchase)).thenReturn(purchase);
+
+		mockMvc.perform(MockMvcRequestBuilders.post("/cart/remove").param("productId", "1")).andDo(print())
+				.andExpect(status().is3xxRedirection())
+				.andExpect(redirectedUrl("/cart"))
+		.andExpect(flash().attribute("flash", Matchers.instanceOf(FlashMessage.class)));
+
+	}
+	@Test
+	public void emptyCartFlashMessageTest() throws Exception {
+		Product product = productBuilder();
+
+		Product product2 = productBuilder();
+		product2.setId(2L);
+
+		when(productService.findById(1L)).thenReturn(product);
+
+		ProductPurchase pp = new ProductPurchase();
+		pp.setProductPurchaseId(1L);
+		pp.setQuantity(1);
+		pp.setProduct(product);
+
+		ProductPurchase pp2 = new ProductPurchase();
+		pp2.setProductPurchaseId(2L);
+		pp2.setQuantity(2);
+		pp2.setProduct(product2);
+
+		List<ProductPurchase> ppList = new ArrayList<ProductPurchase>();
+		ppList.add(pp);
+		ppList.add(pp2);
+
+		Purchase purchase = new Purchase();
+		purchase.setId(1L);
+		purchase.setProductPurchases(ppList);
+
+		when(sCart.getPurchase()).thenReturn(purchase);
+
+		when(purchaseService.save(purchase)).thenReturn(purchase);
+
+		mockMvc.perform(MockMvcRequestBuilders.post("/cart/empty")).andDo(print())
+				.andExpect(status().is3xxRedirection())
+				.andExpect(redirectedUrl("/product/"))
+				.andExpect(flash().attribute("flash", Matchers.instanceOf(FlashMessage.class)));
 	}
 
 	@Test

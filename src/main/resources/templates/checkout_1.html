@@ -1,16 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-    <head>
-        <meta charset="utf-8"/>
-        <meta http-equiv="x-ua-compatible" content="ie=edge"/>
-        <title>CartShop</title>
-        <link href='https://fonts.googleapis.com/css?family=Roboto:400,700|Roboto+Condensed:400,700' rel='stylesheet' type='text/css'/>
-        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
-        <script src="/js/site.js"></script>
-        <link rel="stylesheet" type="text/css" href="/static/css/normalize.css" th:href="@{/css/normalize.css}"/>
-        <link rel="stylesheet" type="text/css" href="/static/css/site.css" th:href="@{/css/site.css}"/>
-    </head>
+<head th:replace="layout :: head('Checkout')"></head>
     <body>
     <div th:replace="layout :: header"></div>
     <div th:replace="layout :: flash"></div>
@@ -24,9 +14,10 @@
 	                <span th:inline="text" class="item-quantity">Quantity: [[${productPurchase.quantity}]]</span>
 	            </div>
             </div>
-            <div class="coupon-code">
+            <div  class="coupon-code">
                 <form id="couponForm" action="#" th:action="@{/checkout/coupon}" th:object="${couponCode}" method="post">
-                        <input type="text" th:field="*{code}" placeholder="Enter coupon code"/>
+                        <input name="coupon" type="text" th:field="*{code}" placeholder="Enter coupon code"/>
+                    <label for="coupon" th:if="${couponError}" th:text="${couponError.message}"></label>
                 </form>
             </div>
             <div class="subtotal">
