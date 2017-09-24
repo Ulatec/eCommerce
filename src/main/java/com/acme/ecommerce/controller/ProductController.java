@@ -61,18 +61,16 @@ public class ProductController {
     	Page<Product> products = productService.findAll(new PageRequest(evalPage, PAGE_SIZE));
     	
 		model.addAttribute("products", products);
-		if(sCart == null){
-			sCart = new ShoppingCart();
-		}
 		CartController.addSubTotalToModel(model, sCart);
+
         return "index";
     }
     
     @RequestMapping(path = "/detail/{id}", method = RequestMethod.GET)
     public String productDetail(@PathVariable long id, Model model) {
     	logger.debug("Details for Product " + id);
-		if(sCart == null){
-			sCart = new ShoppingCart();
+		if(sCart.getPurchase().getProductPurchases() != null){
+			CartController.addSubTotalToModel(model, sCart);
 		}
     	Product returnProduct = productService.findById(id);
     	if (returnProduct != null) {
@@ -85,7 +83,7 @@ public class ProductController {
     		logger.error("Product " + id + " Not Found!");
     		return "redirect:/error";
     	}
-		CartController.addSubTotalToModel(model, sCart);
+
 
         return "product_detail";
     }

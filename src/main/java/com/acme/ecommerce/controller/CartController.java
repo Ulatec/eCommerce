@@ -216,7 +216,7 @@ public class CartController {
     }
     public static void addSubTotalToModel(Model model, ShoppingCart cart){
     	BigDecimal subTotal = new BigDecimal(0);
-		if (cart.getPurchase() != null) {
+		if (cart.getPurchase() != null && cart.getPurchase().getProductPurchases().size() > 0) {
 			for(ProductPurchase pp : cart.getPurchase().getProductPurchases()){
 				subTotal = subTotal.add(pp.getProduct().getPrice().multiply( new BigDecimal(pp.getQuantity())));
 			}
